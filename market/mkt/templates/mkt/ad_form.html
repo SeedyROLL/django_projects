@@ -1,0 +1,31 @@
+{% extends "base_bootstrap.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-3">
+  <form action="" method="post" id="upload_form" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    
+    <div class="mt-3">
+      <input type="submit" value="Submit" class="btn btn-primary">
+      <input type="submit" value="Cancel" class="btn btn-secondary" 
+             onclick="window.location.href='{% url 'mkt:all' %}';return false;">
+    </div>
+  </form>
+</div>
+
+<script>
+document.getElementById("upload_form").addEventListener("submit", function() {
+  console.log('Checking file size');
+  if (window.File && window.FileReader && window.FileList && window.Blob) {
+      // Ищем поле загрузки по ID, который генерирует Django
+      var file = document.getElementById('id_{{ form.upload_field_name }}').files[0];
+      if (file && file.size > {{ form.max_upload_limit }} ) {
+          alert("File " + file.name + " of type " + file.type + " must be < {{ form.max_upload_limit_text }}");
+          return false;
+      }
+  }
+});
+</script>
+{% endblock %}

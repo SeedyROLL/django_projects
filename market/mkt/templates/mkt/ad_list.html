@@ -1,0 +1,79 @@
+{% extends "base_bootstrap.html" %}
+{% block content %}
+<h1>Ads</h1>
+
+<div style="float:right">
+    <form>
+        <input type="text" placeholder="Search.." name="search"
+        {% if search %} value="{{ search }}" {% endif %}
+        >
+        <button type="submit"><i class="fa fa-search"></i></button>
+        <a href="{% url 'mkt:all' %}"><i class="fa fa-undo"></i></a>
+    </form>
+</div>
+
+<div style="margin-bottom: 20px;">
+    {% if ad_list %}
+    <ul>
+      {% for ad in ad_list %}
+        <li>
+            <a href="{% url 'mkt:ad_detail' ad.id %}">{{ ad.title }}</a>
+
+            {% if user.is_authenticated %}
+            <dj4e-favstar
+                {% if ad.id in favorites %} fav="fav" {% endif %}
+                onclick="favToggle(this, '{% url 'mkt:ad_favorite' ad.id %}')">
+            </dj4e-favstar>
+            {% endif %}
+
+            {% if ad.owner == user %}
+            (
+            <a href="{% url 'mkt:ad_update' ad.id %}">Edit</a> |
+            <a href="{% url 'mkt:ad_delete' ad.id %}">Delete</a>
+            )
+            {% endif %}
+
+            <div style="font-size: 0.8em; color: gray;">
+                Price: {{ ad.price }} | Added by: {{ ad.owner.username }}
+            </div>
+        </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+      <p>There are no ads in the database.</p>
+    {% endif %}
+    {% if ad.tags.all %}
+    <p>Tags:
+      {% for tag in ad.tags.all %}
+      <span class="badge bg-info text-dark">{{ tag.name }}</span>
+      {% endfor %}
+    </p>
+    {% endif %}
+</div>
+
+<p>
+    <a href="{% url 'mkt:ad_create' %}" class="btn btn-primary">Add an ad</a>
+</p>
+
+<script>
+function favToggle(element, url) {
+    console.log('POSTing to', url);
+    fetch(url, { method: 'POST', body: '{}' } )
+    .then((response) => {
+        if (!response.ok) {
+            console.log("If you see this error, it is likely in ToggleFavoriteView()");
+            throw new Error(`AJAX/fetch error status: ${response.status}`);
+        }
+        return response.text();
+    })
+    .then((response) => {
+        console.log(url, response);
+        element.toggleAttribute('fav');
+    }).catch((error) => {
+        alert(`Url ${url} failed ${error}`);
+    });
+}
+</script>
+<script type="module" src="https://www.dj4e.com/static/wc/dj4e-favstar.js"></script>
+
+{% endblock %}
